@@ -4,12 +4,21 @@ const router = express.Router();
 const filePath = './tasks.json';
 
 function loadTasks() {
-  if (!fs.existsSync(filePath)) return [];
-  return JSON.parse(fs.readFileSync(filePath));
+  try {
+    if (!fs.existsSync(filePath)) return [];
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (err) {
+    console.error('Error loading tasks:', err);
+    return [];
+  }
 }
 
 function saveTasks(tasks) {
-  fs.writeFileSync(filePath, JSON.stringify(tasks, null, 2));
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(tasks, null, 2));
+  } catch (err) {
+    console.error('Error saving tasks:', err);
+  }
 }
 
 // GET /tasks
