@@ -25,11 +25,11 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Verify AWS Credentials
-        run: aws sts get-caller-identity 
+        run: aws sts get-caller-identity
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -38,11 +38,17 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
+      - name: Set up SSH key file from secret
+        run: echo "${{ secrets.EC2_SSH_KEY }}" > ./terraform/deployer-key.pub
+
+      - name: Write Terraform variable file
+        run: echo 'public_key_path = "deployer-key.pub"' > ./terraform/vars.tfvars
+
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -var-file="vars.tfvars"
         working-directory: ./terraform
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var-file="vars.tfvars"
         working-directory: ./terraform
