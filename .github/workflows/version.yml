@@ -7,12 +7,16 @@ on:
   pull_request:
     branches:
       - main
-    types: 
-      - closed    
+    types:
+      - closed
+
+permissions:
+  contents: write  # Required to create tags
 
 jobs:
   version:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
@@ -21,4 +25,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch     # Can be major/minor/patch
-          WITH_V: true            # Will generate tags like v1.2.3
+          WITH_V: true            # Use vX.X.X format
