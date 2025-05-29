@@ -69,7 +69,7 @@ jobs:
             docker build -t todo-api .
 
             echo "Running new container with .env file..."
-            docker run --env-file .env -d -p 80:3000 --name todo-api todo-api
+            docker run --env-file ~/app/.env -d -p 80:3000 --name todo-api todo-api
             echo "Deployment complete. ToDo API is now running."
 
             echo "Cleaning up unused Docker images..."
