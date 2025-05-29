@@ -14,9 +14,6 @@ permissions:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Checkout code
@@ -38,11 +35,36 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
-      - name: Set up SSH key file from secret
+      - name: Write SSH Public Key to file
         run: echo "${{ secrets.EC2_SSH_KEY }}" > ./terraform/deployer-key.pub
 
       - name: Write Terraform variable file
         run: echo 'public_key_path = "deployer-key.pub"' > ./terraform/vars.tfvars
+
+      - name: Try importing key pair if it exists
+        working-directory: ./terraform
+        run: |
+          KEY_NAME="deployer-key"
+          EXISTS=$(aws ec2 describe-key-pairs --key-names "$KEY_NAME" --query "KeyPairs[0].KeyName" --output text 2>/dev/null || echo "")
+          TRACKED=$(terraform state list | grep aws_key_pair.deployer || echo "")
+          if [ "$EXISTS" != "None" ] && [ -z "$TRACKED" ]; then
+            echo "Importing existing key pair $KEY_NAME"
+            terraform import aws_key_pair.deployer "$KEY_NAME"
+          fi
+
+      - name: Try importing security group if it exists
+        working-directory: ./terraform
+        run: |
+          SG_NAME="todo-api-sg"
+          VPC_ID=$(aws ec2 describe-vpcs --query "Vpcs[0].VpcId" --output text)
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters Name=group-name,Values=$SG_NAME Name=vpc-id,Values=$VPC_ID \
+            --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
+          TRACKED=$(terraform state list | grep aws_security_group.todo_sg || echo "")
+          if [ "$SG_ID" != "None" ] && [ -z "$TRACKED" ]; then
+            echo "Importing existing security group $SG_NAME with ID $SG_ID"
+            terraform import aws_security_group.todo_sg "$SG_ID"
+          fi
 
       - name: Terraform Plan
         run: terraform plan -var-file="vars.tfvars"

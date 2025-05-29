@@ -46,8 +46,13 @@ docker-compose*.yml
 *.tfstate
 *.tfstate.backup
 .terraform/
+.terraform.lock.hcl
 terraform.tfvars
 terraform.tfvars.json
+terraform/vars.tfvars
+terraform/deployer-key.pub
+terraform.tfstate
+terraform.tfstate.backup
 crash.log
 override.tf
 override.tf.json
