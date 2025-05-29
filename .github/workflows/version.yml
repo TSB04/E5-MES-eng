@@ -1,0 +1,19 @@
+name: Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Auto version bump & tag
+        uses: anothrnick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch     # Can be major/minor/patch
+          WITH_V: true            # Will generate tags like v1.2.3

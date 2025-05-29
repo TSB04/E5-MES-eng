@@ -1,0 +1,113 @@
+# ===========================
+# Node.js
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Jest test coverage
+coverage/
+test-results.xml
+.jest/
+
+# .env environment variables
+.env
+.env.*
+
+# ===========================
+# Docker
+# ===========================
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+*.local.yml
+*.env
+
+# Docker volumes & artifacts
+**/docker-volume/
+**/.docker/
+
+# ===========================
+# Terraform
+# ===========================
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+terraform.tfvars.json
+crash.log
+override.tf
+override.tf.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Ignore plan files
+plan.out
+*.plan
+
+# ===========================
+# GitHub Actions & CI
+# ===========================
+.github/workflows/*.yaml
+!.github/workflows/
+
+# Ignore CI secrets backup (if any)
+ci-secrets.json
+
+# ===========================
+# OS & Editor files
+# ===========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# ===========================
+# Miscellaneous
+# ===========================
+*.tgz
+*.zip
+*.tar.gz
+*.log
+*.bak
+*.old
+*.orig
+*.rej
+
+# Ignore test snapshots
+__snapshots__/
+
+# Ignore build artifacts (if generated)
+build/
+dist/
+tmp/
+temp/
+
+# Ignore SSH keys
+*.pem
+*.pub
+*.key
+id_rsa*
+id_ecdsa*
+id_ed25519*
+.ssh/
+
+# Ignore markdown preview artifacts
+*.preview.html

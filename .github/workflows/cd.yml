@@ -1,0 +1,50 @@
+# .github/workflows/deploy.yml
+name: Deploy ToDo API to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+
+            echo "Stopping and removing old container..."
+            docker stop todo-api || true
+            docker rm todo-api || true
+
+            echo "Pulling latest code..."
+            cd ~/app || mkdir ~/app && cd ~/app
+            git pull origin main || git clone https://github.com/${{ github.repository }} . 
+
+            echo "Rebuilding container..."
+            docker build -t todo-api .
+
+            echo "Running container..."
+            docker run -d -p 80:3000 --name todo-api todo-api
+
+            echo "Cleanup unused images..."
+            docker image prune -f
+          EOF
+
+      - name: Notify success
+        if: success()
+        run: echo "✅ Deployment succeeded."
+
+      - name: Notify failure
+        if: failure()
+        run: echo "❌ Deployment failed."
