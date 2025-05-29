@@ -10,13 +10,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - uses: actions/checkout@v3
 
+      # 2. Set up Node.js (if ever needed locally)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3. Set up SSH agent for SCP & SSH
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      # 4. Create and transfer .env to EC2
+      - name: Create and copy .env to EC2
+        run: |
+          # Create environment file
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "PORT=80" > .env
+            echo "ENV=production" >> .env
+          else
+            echo "PORT=3000" > .env
+            echo "ENV=development" >> .env
+          fi
+
+          # Ensure app directory exists before copying
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} 'mkdir -p ~/app'
+
+          # Copy .env file
+          scp -o StrictHostKeyChecking=no .env ec2-user@${{ secrets.EC2_HOST }}:~/app/.env
+
+      # 5. SSH and deploy app
       - name: Deploy on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
@@ -34,18 +61,22 @@ jobs:
 
             cd ~/app
 
-            echo "Stopping and removing old container..."
+            echo "Stopping old container if running..."
             docker stop todo-api || true
             docker rm todo-api || true
 
-            echo "Building and running Docker container..."
+            echo "Building Docker image..."
             docker build -t todo-api .
-            docker run -d -p 80:3000 --name todo-api todo-api
 
-            echo "Cleaning up unused images..."
+            echo "Running new container with .env file..."
+            docker run --env-file ~/app/.env -d -p 80:3000 --name todo-api todo-api
+            echo "Deployment complete. ToDo API is now running."
+
+            echo "Cleaning up unused Docker images..."
             docker image prune -f
           EOF
 
+      # 6. Success/failure notifications
       - name: Notify success
         if: success()
         run: echo "✅ Deployment succeeded."

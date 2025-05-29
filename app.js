@@ -1,14 +1,15 @@
 const express = require("express");
 const tasksRoutes = require("./routes/tasks");
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
+const ENV = process.env.ENV;
 
 app.use(express.json());
 app.use("/tasks", tasksRoutes);
 
 if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`ToDo API listening at http://localhost:${port}`);
+  app.listen(PORT, () => {
+    console.log(`ToDo API is running on port ${PORT} in ${ENV} mode`);
   });
 }
 
